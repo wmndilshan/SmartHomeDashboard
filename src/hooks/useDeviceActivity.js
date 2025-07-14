@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ref, onValue, off } from 'firebase/database';
-import { database } from '../lib/firebase';
+import { DeviceActivityStorage } from '../utils/deviceActivityStorage';
 
 export function useDeviceActivity(environmentId, timeRange = '24h') {
   const [activityData, setActivityData] = useState([]);
@@ -13,38 +12,29 @@ export function useDeviceActivity(environmentId, timeRange = '24h') {
       return;
     }
 
-    const activityRef = ref(database, `environments/${environmentId}/activity`);
+    try {
+      // Get activity data from local storage
+      const chartData = DeviceActivityStorage.processActivitiesForChart(environmentId, timeRange);
+      setActivityData(chartData);
+      setLoading(false);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
     
-    const unsubscribe = onValue(activityRef, (snapshot) => {
+    // Set up an interval to refresh data periodically
+    const interval = setInterval(() => {
       try {
-        const activities = snapshot.val();
-        if (activities) {
-          const processedData = processActivityData(activities, timeRange);
-          setActivityData(processedData);
-        } else {
-          // If no activity data exists, generate some based on current device states
-          const devicesRef = ref(database, `environments/${environmentId}/devices`);
-          onValue(devicesRef, (devicesSnapshot) => {
-            const devices = devicesSnapshot.val();
-            if (devices) {
-              const simulatedData = generateSimulatedActivityData(devices, timeRange);
-              setActivityData(simulatedData);
-            }
-          });
-        }
-        setLoading(false);
-        setError(null);
+        const chartData = DeviceActivityStorage.processActivitiesForChart(environmentId, timeRange);
+        setActivityData(chartData);
       } catch (err) {
         setError(err.message);
-        setLoading(false);
       }
-    }, (error) => {
-      setError(error.message);
-      setLoading(false);
-    });
+    }, 30000); // Update every 30 seconds
 
     return () => {
-      off(activityRef);
+      clearInterval(interval);
     };
   }, [environmentId, timeRange]);
 

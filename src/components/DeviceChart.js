@@ -28,6 +28,7 @@ export default function DeviceChart({ devices, rooms, type = 'bar', environmentI
   const { theme } = useTheme();
   const [timeRange, setTimeRange] = useState('24h');
   const { activityData, loading: activityLoading } = useDeviceActivity(environmentId, timeRange);
+  const [selectedDevice, setSelectedDevice] = useState(null);
 
   // Prepare data for different chart types
   const prepareBarData = () => {
@@ -104,19 +105,8 @@ export default function DeviceChart({ devices, rooms, type = 'bar', environmentI
     ];
   };
 
-  const prepareLineData = () => {
-    // Simulate hourly data (you can replace this with real time-series data)
-    const hours = Array.from({ length: 24 }, (_, i) => i);
-    return hours.map(hour => ({
-      hour: `${hour}:00`,
-      active: Math.floor(Math.random() * Object.keys(devices).length),
-      total: Object.keys(devices).length
-    }));
-  };
-
   const barData = prepareBarData();
   const pieData = preparePieData();
-  const lineData = prepareLineData();
   const deviceTypeData = prepareDeviceTypeData();
   const radialData = prepareRadialData();
 
@@ -233,7 +223,7 @@ export default function DeviceChart({ devices, rooms, type = 'bar', environmentI
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="glass-card rounded-xl p-6 h-80"
+        className="chart-container"
       >
         <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
           System Activity Level
@@ -270,7 +260,7 @@ export default function DeviceChart({ devices, rooms, type = 'bar', environmentI
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="glass-card rounded-xl p-6 h-80"
+        className="chart-container"
       >
         <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
           Device Categories
@@ -457,12 +447,13 @@ export default function DeviceChart({ devices, rooms, type = 'bar', environmentI
     );
   }
 
+  // Default bar chart
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="glass-card rounded-xl p-6 h-80"
+      className="chart-container"
     >
       <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
         Device Status by Room
