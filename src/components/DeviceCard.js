@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ref, set } from 'firebase/database';
 import { database } from '../lib/firebase';
+import { logDeviceActivity } from '../utils/activityLogger';
 
 const deviceIcons = {
   'Switch': Power,
@@ -42,11 +43,25 @@ export default function DeviceCard({ device, deviceId, environmentId, symbol }) 
   
   const toggleDevice = async () => {
     try {
-      await set(ref(database, `environments/${environmentId}/devices/${deviceId}/state`), !device.state);
+      const newState = !device.state;
+      
+      // Update device state
+      await set(ref(database, `environments/${environmentId}/devices/${deviceId}/state`), newState);
+      
       // Also update the symbol state if it exists
       if (device.assignedSymbol && symbol) {
-        await set(ref(database, `symbols/${device.assignedSymbol}/state`), !device.state);
+        await set(ref(database, `symbols/${device.assignedSymbol}/state`), newState);
       }
+      
+      // Log the activity for analytics
+      await logDeviceActivity(
+        environmentId,
+        deviceId,
+        device.name,
+        newState,
+        null, // userId - you can pass the current user ID if available
+        device.roomId
+      );
     } catch (error) {
       console.error('Error toggling device:', error);
     }

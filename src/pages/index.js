@@ -12,6 +12,10 @@ import {
 } from 'lucide-react';
 import { useFirebaseData } from '../hooks/useFirebaseData';
 import EnvironmentSelector from '../components/EnvironmentSelector';
+import ThemeToggle from '../components/ThemeToggle';
+import DeviceChart from '../components/DeviceChart';
+import UsersTable from '../components/UsersTable';
+import DeviceAccessTable from '../components/DeviceAccessTable';
 import RoomCard from '../components/RoomCard';
 import StatsCard from '../components/StatsCard';
 
@@ -63,6 +67,24 @@ export default function Dashboard() {
             currentEnvironment={selectedEnvironment}
             onEnvironmentChange={setSelectedEnvironment}
           />
+          <ThemeToggle />
+        </div>
+
+        {/* Device Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <DeviceChart devices={devices} rooms={rooms} type='pie' />
+          <DeviceChart devices={devices} rooms={rooms} type='radial' />
+        </div>
+
+        {/* Additional Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <DeviceChart devices={devices} rooms={rooms} type='deviceTypes' />
+          <DeviceChart devices={devices} rooms={rooms} type='bar' />
+        </div>
+
+        {/* Time Series Chart */}
+        <div className="mb-8">
+          <DeviceChart devices={devices} rooms={rooms} type='line' />
         </div>
 
         {/* Stats Cards */}
@@ -121,6 +143,22 @@ export default function Dashboard() {
             color="primary"
           />
         </div>
+
+        {/* Users Table */}
+        {environment && environment.users && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">User Access and Roles</h2>
+            <UsersTable users={environment.users} devices={devices} globalUsers={users} />
+          </div>
+        )}
+
+        {/* Device Access Table */}
+        {environment && environment.users && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Device Access Control</h2>
+            <DeviceAccessTable devices={devices} users={environment.users} rooms={rooms} globalUsers={users} />
+          </div>
+        )}
 
         {/* Environment Info */}
         {environment && (
